@@ -1,13 +1,21 @@
+
+from faker import Faker
 import pytest
 import requests
+from constants import BASE_URL, REGISTER_ENDPOINT, LOGIN_ENDPOINT
+from custom_requester.custom_requester import CustomRequester
 from utils.data_generator import DataGenerator
-from PART_4.Cinescope.constants import HEADERS, LOGIN_URL, REGISTER_URL
+
+faker = Faker()
 
 @pytest.fixture(scope="session")
 def test_user():
-    random_email = DataGenerator.get_random_email()
-    random_name = DataGenerator.get_random_name()
-    random_password = DataGenerator.get_random_password()
+    """
+    Генерация случайного пользователя для тестов.
+    """
+    random_email = DataGenerator.generate_random_email()
+    random_name = DataGenerator.generate_random_name()
+    random_password = DataGenerator.generate_random_password()
 
     return {
         "email": random_email,
@@ -18,27 +26,26 @@ def test_user():
     }
 
 @pytest.fixture(scope="session")
-def auth_session(test_user):
-    #Регистрируем нового пользователя
-    response = requests.post(REGISTER_URL, json=test_user, headers=HEADERS)
-    assert response.status_code == 201, 'Ошибка при регистрации пользователя!'
+def registered_user(requester, test_user):
+    """
+    Фикстура для регистрации и получения данных зарегистрированного пользователя.
+    """
+    response = requester.send_request(
+        method="POST",
+        endpoint=REGISTER_ENDPOINT,
+        data=test_user,
+        expected_status=201
+    )
+    response_data = response.json()
+    registered_user = test_user.copy()
+    registered_user["id"] = response_data["id"]
+    return registered_user
 
-    #Логинимся
-    login_json = {
-        "email": test_user["email"],
-        "password": test_user["password"]
-    }
-    response = requests.post(LOGIN_URL, json=login_json, headers=HEADERS)
-    assert response.status_code == 200, 'Ошибка авторизации пользователя!'
-
-    token = response.json().get("accessToken")
-    assert token is not None, 'Ошибка получения токена!'
-
+@pytest.fixture(scope="session")
+def requester():
+    """
+    Фикстура для создания экземпляра CustomRequester.
+    """
     session = requests.Session()
-    session.headers.update(HEADERS)
-    session.headers.update({"Authorization": f"Bearer {token}"})
-    return session
-
-
-
+    return CustomRequester(session=session, base_url=BASE_URL)
 

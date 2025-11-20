@@ -4,7 +4,6 @@ HEADERS = {
     'Accept': 'application/json'
 }
 
-LOGIN_URL = f'{BASE_URL}/login'
-REGISTER_URL = f'{BASE_URL}/register'
+LOGIN_ENDPOINT = '/login'
+REGISTER_ENDPOINT = '/register'
 
-EMAIL_PROV = '@gmail.com'

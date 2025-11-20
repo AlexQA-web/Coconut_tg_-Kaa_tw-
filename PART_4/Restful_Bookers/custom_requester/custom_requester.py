@@ -1,16 +1,11 @@
-import json
+import pytest
 import requests
+from PART_4.Restful_Bookers.constants import HEADERS
 import logging
 import os
 
-class CustomRequester:
-    """
-    Кастомный реквестер для стандартизации и упрощения отправки HTTP-запросов.
-    """
-    base_headers = {
-        "Content-Type": "application/json",
-        "Accept": "application/json"
-    }
+class Requester:
+    base_headers = HEADERS
 
     def __init__(self, session, base_url):
         self.session = session
@@ -42,7 +37,6 @@ class CustomRequester:
                 if isinstance(request.body, bytes):
                     body = request.body.decode('utf-8')
                 body = f"-d '{body}' \n" if body != '{}' else ''
-
             self.logger.info(f"\n{'=' * 40} REQUEST {'=' * 40}")
             self.logger.info(
                 f"{GREEN}{full_test_name}{RESET}\n"
@@ -50,7 +44,6 @@ class CustomRequester:
                 f"{headers} \\\n"
                 f"{body}"
             )
-
             response_data = response.text
             try:
                 response_data = json.dumps(json.loads(response.text), indent=4, ensure_ascii=False)
@@ -69,5 +62,7 @@ class CustomRequester:
                     f"\tDATA:\n{response_data}"
                 )
             self.logger.info(f"{'=' * 80}\n")
+
         except Exception as e:
             self.logger.error(f"\nLogging failed: {type(e)} - {e}")
+
