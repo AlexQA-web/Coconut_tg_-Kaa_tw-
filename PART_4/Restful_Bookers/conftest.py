@@ -1,7 +1,10 @@
 import pytest
 import requests
 from faker import Faker
-from constants import HEADERS, AUTH_URL
+
+from PART_4.Restful_Bookers.constants import BOOKING_ENDPOINT
+from constants import HEADERS, AUTH_ENDPOINT, BASE_URL, AUTH_URL
+from custom_requester.custom_requester import Requester
 
 faker = Faker()
 
@@ -76,3 +79,42 @@ def empty_data():
         },
         "additionalneeds": ""
     }
+@pytest.fixture
+def booking(requester, booking_data):
+    response = requester.send_request(
+        method="POST",
+        endpoint=BOOKING_ENDPOINT,
+        data=booking_data,
+        expected_status=200
+    )
+    booking_id = response.json()["bookingid"]
+    control = {"autodelete": True}
+    try:
+        yield booking_id, response.json(), control
+    finally:
+        if control.get("autodelete", True):
+            requester.send_request(
+                method="DELETE",
+                endpoint=f'{BOOKING_ENDPOINT}/{booking_id}',
+                expected_status=201
+            )
+
+@pytest.fixture
+def requester():
+    session = requests.Session()
+    request = Requester(session, base_url=BASE_URL)
+    request.session.headers.update({"Accept": "application/json",
+                              "Content-Type": "application/json"})
+    request.login("admin", "password123")
+    return request
+
+@pytest.fixture
+def unauthorized_requester():
+    session = requests.Session()
+    session.headers.update(HEADERS)
+    requester = Requester(session, base_url=BASE_URL)
+    return requester
+
+
+
+

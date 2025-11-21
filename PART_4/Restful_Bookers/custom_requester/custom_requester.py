@@ -1,16 +1,15 @@
-import pytest
 import requests
 from PART_4.Restful_Bookers.constants import HEADERS
 import logging
 import os
+import json
 
 class Requester:
-    base_headers = HEADERS
-
     def __init__(self, session, base_url):
         self.session = session
         self.base_url = base_url
-        self.headers = self.base_headers.copy()
+        self.headers = HEADERS.copy()
+        self.session.headers.update(self.headers)
         self.logger = logging.getLogger(__name__)
         self.logger.setLevel(logging.INFO)
 
@@ -37,6 +36,7 @@ class Requester:
                 if isinstance(request.body, bytes):
                     body = request.body.decode('utf-8')
                 body = f"-d '{body}' \n" if body != '{}' else ''
+
             self.logger.info(f"\n{'=' * 40} REQUEST {'=' * 40}")
             self.logger.info(
                 f"{GREEN}{full_test_name}{RESET}\n"
@@ -65,4 +65,12 @@ class Requester:
 
         except Exception as e:
             self.logger.error(f"\nLogging failed: {type(e)} - {e}")
+
+    def login(self, username: str, password: str):
+        url = f"{self.base_url.rstrip('/')}/auth"
+        response = self.session.post(url, json={"username": "admin", "password": "password123"})
+        response.raise_for_status()
+        token = response.json()["token"]
+        self.session.cookies.set("token", token)
+        return token
 
