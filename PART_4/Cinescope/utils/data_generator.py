@@ -42,3 +42,31 @@ class DataGenerator:
         random.shuffle(password)
 
         return ''.join(password)
+
+    @staticmethod
+    def generate_movie_name():
+        return faker.sentence(nb_words=3).rstrip(".")
+
+    @staticmethod
+    def generate_movie_image_url():
+        return faker.image_url()
+
+    @staticmethod
+    def generate_movie_price(min_price: int = 50, max_price: int = 500):
+        return random.randint(min_price, max_price)
+
+    @staticmethod
+    def generate_movie_description():
+        return faker.paragraph(nb_sentences=3)
+
+    @staticmethod
+    def generate_movie_location():
+        return random.choice(["SPB", "MSK"])
+
+    @staticmethod
+    def generate_movie_published():
+        return True
+
+    @staticmethod
+    def generate_movie_genre_id():
+        return random.randint(1, 5)
